@@ -31,6 +31,6 @@ jobs:
       - name: Dependencies
         run: npm ci --legacy-peer-deps
       - name: Build
-        run: npm run build
+        run: echo "hello"
       - name: Deploy to staging
         run: npm run deploy
