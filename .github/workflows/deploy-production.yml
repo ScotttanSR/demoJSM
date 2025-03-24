@@ -1,0 +1,46 @@
+name: Deploy to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'This release is a major or minor version?'
+        type: choice
+        required: true
+        default: 'minor'
+        options:
+          - minor
+          - major
+      skip_deployment:
+        description: 'Skip deployment?'
+        type: boolean
+        default: false
+
+env:
+  DEPLOY_TO: 'production'
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  build-release-forge:
+    name: Build & Release Forge
+    runs-on: ubuntu-latest
+    environment: production
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - name: Print job's parameter values
+        run: echo "${{ toJSON(inputs) }}"
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Deploy to production
+        if: ${{github.event.inputs.skip_deployment == 'false'}}
+        run: npm run deploy:dev
