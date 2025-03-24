@@ -38,6 +38,7 @@ jobs:
         id: deployment
         with:
           token: '${{ github.token }}'
+          environment: ${{ inputs.environment }}
 
       - name: Deploy for ${{ inputs.environment }}
         run: npm run deploy
