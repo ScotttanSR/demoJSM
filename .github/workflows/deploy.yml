@@ -12,6 +12,9 @@ on:
           - staging
           - production
 
+permissions:
+  deployments: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -30,7 +33,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - uses: chrnorm/deployment-action@v2
+        name: Create GitHub deployment
+        id: deployment
+        with:
+          token: '${{ github.token }}'
+          environment: ${{ inputs.environment }}
+
       - name: Deploy for ${{ inputs.environment }}
         run: npm run deploy
         env:
           NODE_ENV: ${{ inputs.environment }}
+
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ github.token }}'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          state: 'success'
