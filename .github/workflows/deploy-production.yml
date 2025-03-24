@@ -43,4 +43,4 @@ jobs:
         run: npm ci --legacy-peer-deps
       - name: Deploy to production
         if: ${{github.event.inputs.skip_deployment == 'false'}}
-        run: npm run deploy:dev
+        run: npm run deploy
