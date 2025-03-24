@@ -1,0 +1,36 @@
+name: Deploy to staging
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main']
+
+env:
+  DEPLOY_TO: 'staging'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-release-forge:
+    name: Build & Release
+    runs-on: ubuntu-latest
+    environment: staging
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - name: Print job's parameter values
+        run: echo "${{ toJSON(inputs) }}"
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Dependencies
+        run: npm ci --legacy-peer-deps
+      - name: Build
+        run: npm run build
+      - name: Deploy to staging
+        run: npm run deploy
