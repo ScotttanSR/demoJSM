@@ -19,37 +19,28 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
-    environment: ${{ inputs.environment }}
 
     steps:
+      - name: Print job's parameter values
+        run: echo "${{ toJSON(inputs) }}"
       - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/checkout@v3
         with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - uses: chrnorm/deployment-action@v2
-        name: Create GitHub deployment
-        id: deployment
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
         with:
-          token: '${{ github.token }}'
-          environment: ${{ inputs.environment }}
+          node-version: '>=18.15'
+      - name: Build dependencies
+        run: npm ci && npm run build
 
-      - name: Deploy for ${{ inputs.environment }}
-        run: npm run deploy
-        env:
-          NODE_ENV: ${{ inputs.environment }}
+      - name: Deploy to development
+        if: ${{ inputs.environment == 'development' }}
+        run: npm run deploy:dev
 
-      - name: Update deployment status (success)
-        if: success()
-        uses: chrnorm/deployment-status@v2
-        with:
-          token: '${{ github.token }}'
-          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
-          state: 'success'
+      - name: Deploy to staging
+        if: ${{ inputs.environment == 'staging' }}
+        run: npm run deploy:staging
+
+      - name: Deploy to production
+        if: ${{ inputs.environment == 'production' }}
+        run: npm run deploy:prod
